@@ -1,0 +1,24 @@
+{
+  "name": "backend",
+  "version": "1.0.0",
+  "description": "",
+  "license": "ISC",
+  "author": "",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "node --watch index.js",
+    "db:init": "node src/db/init.js",
+    "db:seed": "node src/db/seed.js",
+    "db:setup": "node src/db/init.js && node src/db/seed.js",
+    "check": "node --check index.js && node --check src/db/init.js && node --check src/db/seed.js",
+    "test": "npm run check"
+  },
+  "dependencies": {
+    "@faker-js/faker": "^10.4.0",
+    "dotenv": "^17.4.2",
+    "pg": "^8.21.0",
+    "socket.io": "^4.8.3"
+  }
+}

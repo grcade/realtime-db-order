@@ -1,0 +1,16 @@
+{
+  "name": "apt-realtime-order",
+  "version": "1.0.0",
+  "description": "Live Order Tracking Dashboard",
+  "private": true,
+  "scripts": {
+    "start": "concurrently \"npm run backend\" \"npm run client\"",
+    "backend": "cd backend && npm run dev",
+    "client": "cd client && npm run dev",
+    "db:reset": "cd backend && node -e 'import { getDbPool } from \"./src/db/db.js\"; const db = await getDbPool(); await db.query(\"TRUNCATE TABLE orders RESTART IDENTITY CASCADE;\"); console.log(\"Database cleared successfully\"); process.exit(0);' --input-type=module",
+    "install:all": "npm install && cd backend && npm install && cd ../client && npm install"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2"
+  }
+}
