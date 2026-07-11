@@ -15,12 +15,16 @@ function buildPoolConfig(database) {
 
   if (connectionString) {
     const url = new URL(connectionString);
+    const isLocalHost = ["localhost", "127.0.0.1"].includes(url.hostname);
 
     if (database) {
       url.pathname = `/${database}`;
     }
 
-    return { connectionString: url.toString() };
+    return {
+      connectionString: url.toString(),
+      ssl: isLocalHost ? undefined : { rejectUnauthorized: false },
+    };
   }
 
   return {
@@ -35,16 +39,28 @@ function buildPoolConfig(database) {
 function getDatabaseName() {
   const databaseName = process.env.POSTGRES_DB?.trim();
 
-  if (!databaseName) {
-    throw new Error("Missing POSTGRES_DB or DATABASE_URL in environment");
+  if (databaseName) {
+    return databaseName;
   }
 
-  return databaseName;
+  const connectionString = process.env.DATABASE_URL?.trim();
+
+  if (connectionString) {
+    const url = new URL(connectionString);
+    const derivedName = url.pathname.replace(/^\/+/, "").trim();
+
+    if (derivedName) {
+      return derivedName;
+    }
+  }
+
+  throw new Error("Missing POSTGRES_DB or DATABASE_URL in environment");
 }
 
 export async function getDbPool() {
   const databaseName = getDatabaseName();
   const targetPool = new Pool(buildPoolConfig(databaseName));
+  const isProduction = process.env.NODE_ENV === "production" || process.env.RAILWAY_ENVIRONMENT;;
 
   try {
     await targetPool.query("SELECT 1");
@@ -53,6 +69,13 @@ export async function getDbPool() {
     if (error.code !== "3D000") {
       await targetPool.end();
       throw error;
+    }
+
+    if (isProduction) {
+      await targetPool.end();
+      throw new Error(
+        `Database \"${databaseName}\" does not exist. Create it in Railway before deploying.`,
+      );
     }
 
     await targetPool.end();
