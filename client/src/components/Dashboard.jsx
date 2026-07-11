@@ -1,53 +1,17 @@
-import React, { useState, useEffect } from "react";
-import { socket, SOCKET_EVENTS } from "../services/socket";
+import React, { useState } from "react";
 import { Bell, Package, CheckCircle, Clock, Truck } from "lucide-react";
 
-const Dashboard = () => {
-  const [orders, setOrders] = useState([]);
-  const [notifications, setNotifications] = useState([]);
+const Dashboard = ({
+  orders,
+  notifications,
+  unreadCount,
+  onMarkNotificationsRead,
+}) => {
   const [showNotifications, setShowNotifications] = useState(false);
-  const [unreadCount, setUnreadCount] = useState(0);
-
-  useEffect(() => {
-    socket.on("orders:list", (initialOrders) => {
-      setOrders(initialOrders);
-    });
-
-    socket.on(SOCKET_EVENTS.ORDER_CREATED, (data) => {
-      const newOrder = data.order;
-      setOrders((prev) => [newOrder, ...prev]);
-      addNotification(
-        `New order created: #${newOrder.id} (${newOrder.product_name})`,
-      );
-    });
-
-    socket.on(SOCKET_EVENTS.ORDER_UPDATED, (data) => {
-      const updatedOrder = data.order;
-      setOrders((prev) =>
-        prev.map((order) =>
-          order.id === updatedOrder.id ? updatedOrder : order,
-        ),
-      );
-      addNotification(
-        `Order #${updatedOrder.id} status: ${updatedOrder.status}`,
-      );
-    });
-
-    return () => {
-      socket.off(SOCKET_EVENTS.ORDER_CREATED);
-      socket.off(SOCKET_EVENTS.ORDER_UPDATED);
-    };
-  }, []);
-
-  const addNotification = (message) => {
-    const newNotif = { id: Date.now(), message, read: false, time: new Date() };
-    setNotifications((prev) => [newNotif, ...prev]);
-    setUnreadCount((prev) => prev + 1);
-  };
 
   const toggleNotifications = () => {
     if (showNotifications) {
-      setUnreadCount(0);
+      onMarkNotificationsRead();
     }
     setShowNotifications(!showNotifications);
   };

@@ -1,9 +1,8 @@
-import React, { useState, useEffect } from "react";
-import { socket, SOCKET_EVENTS } from "../services/socket";
+import React, { useState } from "react";
+import { socket } from "../services/socket";
 import { PlusCircle, RefreshCw, AlertCircle } from "lucide-react";
 
-const AdminPanel = () => {
-  const [orders, setOrders] = useState([]);
+const AdminPanel = ({ orders }) => {
   const [newOrder, setNewOrder] = useState({
     product_name: "",
     quantity: 1,
@@ -11,29 +10,6 @@ const AdminPanel = () => {
     user_id: 1,
     status: "pending",
   });
-
-  useEffect(() => {
-    // Fetch initial list
-    socket.on("orders:list", (initialOrders) => {
-      setOrders(initialOrders);
-    });
-
-    // Listen for updates to keep local list in sync
-    socket.on(SOCKET_EVENTS.ORDER_CREATED, (data) => {
-      setOrders((prev) => [data.order, ...prev]);
-    });
-
-    socket.on(SOCKET_EVENTS.ORDER_UPDATED, (data) => {
-      setOrders((prev) =>
-        prev.map((order) => (order.id === data.order.id ? data.order : order)),
-      );
-    });
-
-    return () => {
-      socket.off(SOCKET_EVENTS.ORDER_CREATED);
-      socket.off(SOCKET_EVENTS.ORDER_UPDATED);
-    };
-  }, []);
 
   const handleCreateOrder = (e) => {
     e.preventDefault();

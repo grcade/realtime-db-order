@@ -16,22 +16,25 @@ export function initSocket(httpServer, db) {
 
   startListeners(db, io);
 
+  const sendInitialOrders = async (socket) => {
+    try {
+      const result = await db.query(
+        "SELECT * FROM orders ORDER BY created_at DESC",
+      );
+      socket.emit("orders:list", result.rows);
+    } catch (error) {
+      console.error("Failed to fetch initial orders:", error);
+    }
+  };
+
   io.on("connection", (socket) => {
     console.log("A user connected:", socket.id);
 
-    // Send initial orders to the newly connected client
-    const sendInitialOrders = async () => {
-      try {
-        const result = await db.query(
-          "SELECT * FROM orders ORDER BY created_at DESC",
-        );
-        socket.emit("orders:list", result.rows);
-      } catch (error) {
-        console.error("Failed to fetch initial orders:", error);
-      }
-    };
+    sendInitialOrders(socket);
 
-    sendInitialOrders();
+    socket.on("orders:request", () => {
+      sendInitialOrders(socket);
+    });
 
     socket.on("order:create", async (orderData) => {
       try {
@@ -45,7 +48,7 @@ export function initSocket(httpServer, db) {
         }
 
         await db.query(
-          `INSERT INTO orders (user_id, product_name, quantity, total_price, status) 
+          `INSERT INTO orders (user_id, product_name, quantity, total_price, status)
            VALUES ($1, $2, $3, $4, $5)`,
           [user_id, product_name, quantity, total_price, status || "pending"],
         );
