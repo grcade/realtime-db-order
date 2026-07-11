@@ -51,7 +51,7 @@ Each channel maps to a Socket.io event on the client side.
 
 | Layer    | Choice            | Why                                                         |
 | -------- | ----------------- | ----------------------------------------------------------- |
-| Backend  | Node.js + Express | Fast, lightweight, great WebSocket support                  |
+| Backend  | Node.js           | Fast, lightweight, great WebSocket support                  |
 | Database | PostgreSQL        | Built-in LISTEN/NOTIFY — perfect for real-time              |
 | Realtime | Socket.io         | Handles WebSocket connections cleanly                       |
 | Client   | React             | cause it is easy to use and has good real-time capabilities |
